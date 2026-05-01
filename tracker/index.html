@@ -634,16 +634,18 @@
     <div class="logo-icon">🚛</div>
     <div class="logo-text">North <span>Star</span></div>
   </div>
-  <div class="header-badge">P&L Tracker</div>
+  <div class="header-badge">P&L Tracker v2.0</div>
 </div>
 
 <div class="app">
 
   <!-- TABS -->
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('calculator')">📊 Load Calculator</button>
+    <button class="tab active" onclick="switchTab('calculator')">📊 Calculator</button>
+    <button class="tab" onclick="switchTab('breakeven')">🎯 Break-Even</button>
+    <button class="tab" onclick="switchTab('goals')">🏆 My Goals</button>
     <button class="tab" onclick="switchTab('dashboard')">📈 Dashboard</button>
-    <button class="tab" onclick="switchTab('history')">📋 Load History</button>
+    <button class="tab" onclick="switchTab('history')">📋 History</button>
   </div>
 
   <!-- ══════════════════════════════════════════ -->
@@ -793,6 +795,12 @@
           </div>
         </div>
 
+        <!-- LOAD WARNING ALERTS -->
+        <div id="warnings-container" style="display:none;margin-top:14px;">
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;">⚠️ Load Warning Alerts</div>
+          <div id="warnings-list"></div>
+        </div>
+
       </div>
 
       <button class="btn-save" id="save-btn" onclick="saveLoad()" disabled>💾 Save This Load to History</button>
@@ -801,8 +809,110 @@
   </div>
 
   <!-- ══════════════════════════════════════════ -->
-  <!-- TAB 2: DASHBOARD                          -->
+  <!-- TAB 2: BREAK-EVEN CALCULATOR              -->
   <!-- ══════════════════════════════════════════ -->
+  <div id="tab-breakeven" class="section">
+
+    <div class="load-card">
+      <h3>🎯 Break-Even Rate Calculator</h3>
+      <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;">Enter your miles and target profit — get the MINIMUM rate you should ever accept. Use this before every broker negotiation.</p>
+      <div class="load-grid">
+        <div class="field">
+          <label>Loaded Miles</label>
+          <input type="number" id="be-miles" placeholder="0" min="0" oninput="calcBreakEven()">
+        </div>
+        <div class="field">
+          <label>Deadhead Miles</label>
+          <input type="number" id="be-dh" placeholder="0" min="0" oninput="calcBreakEven()">
+        </div>
+        <div class="field">
+          <label>Your Profit Target ($)</label>
+          <input type="number" id="be-target" placeholder="e.g. 800" min="0" oninput="calcBreakEven()">
+        </div>
+      </div>
+
+      <div class="result-panel" id="be-result" style="margin-top:16px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:20px;">
+          <div style="text-align:center;padding:16px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Break-Even Rate</div>
+            <div id="be-breakeven" style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--yellow);">—</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Minimum to cover costs</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Target Rate</div>
+            <div id="be-target-rate" style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--green);">—</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">To hit your profit goal</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Break-Even RPM</div>
+            <div id="be-rpm" style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--orange);">—</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Per loaded mile</div>
+          </div>
+        </div>
+
+        <div class="breakdown">
+          <h4>📋 Cost Breakdown For This Run</h4>
+          <div class="breakdown-row">
+            <span class="b-label">Fuel Cost</span>
+            <span class="b-value" id="be-fuel">—</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="b-label">Rental Fee</span>
+            <span class="b-value" id="be-rental">—</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="b-label">Dispatch + Factoring (% of gross)</span>
+            <span class="b-value" id="be-pct">—</span>
+          </div>
+          <div class="breakdown-row total">
+            <span class="b-label">Total Fixed Costs</span>
+            <span class="b-value" id="be-fixed">—</span>
+          </div>
+          <div class="breakdown-row net-row">
+            <span class="b-label">Min Rate To Break Even</span>
+            <span class="b-value" id="be-min" style="color:var(--yellow)">—</span>
+          </div>
+        </div>
+
+        <div id="be-script-box" style="display:none;margin-top:16px;background:var(--dark);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:10px;padding:16px;">
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:10px;">💬 Your Negotiation Script — Copy & Send To Broker</div>
+          <div id="be-script" style="font-size:14px;color:var(--text);line-height:1.7;"></div>
+          <button onclick="copyScript()" style="margin-top:12px;background:var(--green);color:var(--black);border:none;border-radius:6px;padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">📋 Copy Script</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- TAB 3: MONTHLY GOAL TRACKER               -->
+  <!-- ══════════════════════════════════════════ -->
+  <div id="tab-goals" class="section">
+
+    <div class="settings-banner" style="margin-bottom:20px;">
+      <h3>🏆 Set Your Monthly Income Goal</h3>
+      <div class="settings-grid">
+        <div class="field">
+          <label>Monthly Net Goal ($)</label>
+          <input type="number" id="g-goal" placeholder="e.g. 10000" min="0" oninput="updateGoals()" value="">
+        </div>
+        <div class="field">
+          <label>Target Loads Per Week</label>
+          <input type="number" id="g-loads-week" placeholder="e.g. 5" min="0" oninput="updateGoals()" value="">
+        </div>
+      </div>
+    </div>
+
+    <div id="goals-dashboard">
+      <div class="empty-state">
+        <div class="e-icon">🏆</div>
+        <h3>Set Your Goal Above</h3>
+        <p>Enter your monthly income goal to see your progress tracker.</p>
+      </div>
+    </div>
+
+  </div>
   <div id="tab-dashboard" class="section">
 
     <div class="kpi-grid" id="kpi-grid">
@@ -902,6 +1012,7 @@ function switchTab(name) {
   event.target.classList.add('active');
   if (name === 'dashboard') renderDashboard();
   if (name === 'history') renderHistory();
+  if (name === 'goals') updateGoals();
 }
 
 // ── CALC ENGINE ──
@@ -1000,7 +1111,194 @@ function recalc() {
   netEl.textContent = fmt(c.net);
   netEl.style.color = c.net >= 0 ? 'var(--green)' : 'var(--red)';
 
+  // ── LOAD WARNING ALERTS ──
+  const warnings = [];
+  const fuelPct = (c.fuelAmt / rate) * 100;
+  const dhPct = miles > 0 ? (dh / (miles + dh)) * 100 : 0;
+  const totalPct = (c.totalDeductions / rate) * 100;
+
+  if (fuelPct > 40) warnings.push({ type: 'red', icon: '🔴', msg: `Fuel is eating ${fuelPct.toFixed(0)}% of your gross — dangerously high. Consider negotiating rate up or find cheaper fuel on this route.` });
+  if (fuelPct > 25 && fuelPct <= 40) warnings.push({ type: 'yellow', icon: '🟡', msg: `Fuel is ${fuelPct.toFixed(0)}% of gross — above the healthy 25% threshold. Watch your fuel stops carefully on this run.` });
+  if (dhPct > 15) warnings.push({ type: 'red', icon: '🔴', msg: `Deadhead is ${dhPct.toFixed(0)}% of total miles — too high. Try to negotiate a higher rate to compensate for empty miles.` });
+  if (dhPct > 8 && dhPct <= 15) warnings.push({ type: 'yellow', icon: '🟡', msg: `Deadhead is ${dhPct.toFixed(0)}% of total miles. Aim to keep deadhead under 10% for healthy margins.` });
+  if (c.net < 0) warnings.push({ type: 'red', icon: '🚨', msg: `This load LOSES you ${fmt(Math.abs(c.net))}. Do not accept without renegotiating. You need at least ${fmt(c.totalDeductions)} to break even.` });
+  if (totalPct > 75) warnings.push({ type: 'red', icon: '🔴', msg: `Total deductions are ${totalPct.toFixed(0)}% of gross — leaving only ${(100-totalPct).toFixed(0)}% for you. This load is not worth your time.` });
+  if (c.netPerLoadedMile < 0.40 && c.net > 0) warnings.push({ type: 'yellow', icon: '🟡', msg: `Net per mile is only ${fmt(c.netPerLoadedMile, 2)}. The industry standard for a profitable load is $0.75+ per loaded mile.` });
+  if (miles > 1500 && c.netPerLoadedMile < 0.50) warnings.push({ type: 'yellow', icon: '🟡', msg: `Long haul at low net per mile. On runs over 1,500 miles, aim for $1.00+ net per loaded mile to justify the time away.` });
+
+  const warnContainer = document.getElementById('warnings-container');
+  const warnList = document.getElementById('warnings-list');
+  if (warnings.length > 0) {
+    warnContainer.style.display = 'block';
+    warnList.innerHTML = warnings.map(w => `
+      <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;margin-bottom:8px;border-radius:8px;background:${w.type==='red'?'var(--red-dim)':'var(--yellow-dim)'};border:1px solid ${w.type==='red'?'rgba(239,68,68,0.3)':'rgba(245,197,24,0.3)'};">
+        <span style="font-size:14px;flex-shrink:0;">${w.icon}</span>
+        <span style="font-size:13px;color:${w.type==='red'?'var(--red)':'var(--yellow)'};line-height:1.5;">${w.msg}</span>
+      </div>
+    `).join('');
+  } else if (rate && miles) {
+    warnContainer.style.display = 'block';
+    warnList.innerHTML = `<div style="padding:10px 12px;border-radius:8px;background:var(--green-dim);border:1px solid rgba(34,197,94,0.3);font-size:13px;color:var(--green);">✅ No warnings on this load — looking clean. Verify your cost profile above and go get it. 🚛</div>`;
+  } else {
+    warnContainer.style.display = 'none';
+  }
+
   saveBtn.disabled = false;
+}
+
+// ── BREAK-EVEN CALCULATOR ──
+function calcBreakEven() {
+  const miles = parseFloat(document.getElementById('be-miles').value) || 0;
+  const dh = parseFloat(document.getElementById('be-dh').value) || 0;
+  const target = parseFloat(document.getElementById('be-target').value) || 0;
+  const settings = getSettings();
+
+  if (!miles) return;
+
+  const totalMiles = miles + dh;
+  const fuelCostPerMile = settings.diesel / settings.mpg;
+  const fuelAmt = fuelCostPerMile * totalMiles;
+  const rentalAmt = settings.rental * totalMiles;
+  const fixedCosts = fuelAmt + rentalAmt;
+  const pctDeductions = (settings.dispatch + settings.factoring) / 100;
+
+  // Break-even: rate * (1 - pct) = fixedCosts → rate = fixedCosts / (1 - pct)
+  const breakEvenRate = pctDeductions < 1 ? fixedCosts / (1 - pctDeductions) : 0;
+  const targetRate = pctDeductions < 1 ? (fixedCosts + target) / (1 - pctDeductions) : 0;
+  const breakEvenRpm = miles > 0 ? breakEvenRate / miles : 0;
+
+  document.getElementById('be-breakeven').textContent = fmt(breakEvenRate);
+  document.getElementById('be-target-rate').textContent = target ? fmt(targetRate) : '—';
+  document.getElementById('be-rpm').textContent = '$' + breakEvenRpm.toFixed(2);
+  document.getElementById('be-fuel').textContent = fmt(fuelAmt);
+  document.getElementById('be-rental').textContent = fmt(rentalAmt);
+  document.getElementById('be-pct').textContent = `${(settings.dispatch + settings.factoring).toFixed(0)}% of gross`;
+  document.getElementById('be-fixed').textContent = fmt(fixedCosts);
+  document.getElementById('be-min').textContent = fmt(breakEvenRate);
+
+  // Negotiation script
+  const scriptBox = document.getElementById('be-script-box');
+  const scriptEl = document.getElementById('be-script');
+  if (breakEvenRate > 0) {
+    scriptBox.style.display = 'block';
+    const negotiateRate = target ? targetRate : breakEvenRate * 1.15;
+    scriptEl.innerHTML = `"Hi, I'm looking at this load — ${miles.toLocaleString()} loaded miles with ${dh} deadhead. Based on current diesel at $${settings.diesel}/gal, my operating costs, dispatch and factoring fees, my break-even on this run is <strong style='color:var(--yellow)'>${fmt(breakEvenRate)}</strong>. To run this load profitably I need a minimum of <strong style='color:var(--green)'>${fmt(Math.ceil(negotiateRate/50)*50)}</strong>. Can you get me there?"`;
+  }
+}
+
+function copyScript() {
+  const text = document.getElementById('be-script').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const toast = document.getElementById('toast');
+    toast.textContent = '📋 Script Copied!';
+    toast.style.background = 'var(--green)';
+    toast.classList.add('show');
+    setTimeout(() => { toast.classList.remove('show'); toast.textContent = '✅ Load Saved!'; }, 2000);
+  });
+}
+
+// ── MONTHLY GOAL TRACKER ──
+function updateGoals() {
+  const goalInput = document.getElementById('g-goal');
+  const loadsWeekInput = document.getElementById('g-loads-week');
+  const goal = parseFloat(goalInput?.value) || 0;
+  const targetLoadsPerWeek = parseFloat(loadsWeekInput?.value) || 0;
+  const container = document.getElementById('goals-dashboard');
+
+  if (!goal) {
+    container.innerHTML = `<div class="empty-state"><div class="e-icon">🏆</div><h3>Set Your Goal Above</h3><p>Enter your monthly income goal to see your progress tracker.</p></div>`;
+    return;
+  }
+
+  // Calculate from saved loads this month
+  const now = new Date();
+  const monthLoads = loads.filter(l => {
+    if (!l.date) return false;
+    const d = new Date(l.date + 'T12:00:00');
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+
+  const earned = monthLoads.reduce((s, l) => s + l.net, 0);
+  const remaining = Math.max(0, goal - earned);
+  const pct = Math.min(100, (earned / goal) * 100);
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const dayOfMonth = now.getDate();
+  const daysLeft = daysInMonth - dayOfMonth;
+  const dailyNeeded = daysLeft > 0 ? remaining / daysLeft : 0;
+  const avgNetPerLoad = monthLoads.length > 0 ? earned / monthLoads.length : 0;
+  const loadsNeeded = avgNetPerLoad > 0 ? Math.ceil(remaining / avgNetPerLoad) : '—';
+  const onPace = earned >= (goal * (dayOfMonth / daysInMonth));
+  const weeklyGoal = goal / 4.33;
+  const earnedThisWeek = loads.filter(l => {
+    if (!l.date) return false;
+    const d = new Date(l.date + 'T12:00:00');
+    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+    return d >= weekAgo;
+  }).reduce((s,l) => s + l.net, 0);
+
+  const barColor = pct >= 75 ? 'var(--green)' : pct >= 40 ? 'var(--yellow)' : 'var(--red)';
+
+  container.innerHTML = `
+    <div class="load-card" style="margin-bottom:20px;">
+      <h3 style="margin-bottom:16px;">📅 ${now.toLocaleString('default',{month:'long'})} ${now.getFullYear()} — Goal: ${fmt(goal)}</h3>
+
+      <div style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:13px;color:var(--text-secondary);">Progress</span>
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:${barColor};">${pct.toFixed(1)}%</span>
+        </div>
+        <div style="height:16px;background:var(--dark);border-radius:100px;overflow:hidden;border:1px solid var(--border);">
+          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:100px;transition:width 0.5s;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;">
+          <span style="font-size:12px;color:var(--text-muted);">Earned: ${fmt(earned)}</span>
+          <span style="font-size:12px;color:var(--text-muted);">Remaining: ${fmt(remaining)}</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
+        <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Days Left</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--text);">${daysLeft}</div>
+        </div>
+        <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Need Daily</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--orange);">${fmt(dailyNeeded)}</div>
+        </div>
+        <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Loads Needed</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--yellow);">${loadsNeeded}</div>
+        </div>
+        <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Pace Status</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:${onPace?'var(--green)':'var(--red)'};">${onPace?'✅ ON PACE':'⚠️ BEHIND'}</div>
+        </div>
+        <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">This Week</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--green);">${fmt(earnedThisWeek)}</div>
+        </div>
+        <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Weekly Goal</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--text);">${fmt(weeklyGoal)}</div>
+        </div>
+      </div>
+
+      ${monthLoads.length === 0 ? `
+        <div style="text-align:center;padding:20px;background:var(--dark);border-radius:10px;border:1px solid var(--border);color:var(--text-muted);font-size:14px;">
+          No loads saved for ${now.toLocaleString('default',{month:'long'})} yet. Save loads in the Calculator tab to track your progress.
+        </div>
+      ` : `
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--yellow);margin-bottom:12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;">${monthLoads.length} Load${monthLoads.length!==1?'s':''} This Month</div>
+        ${monthLoads.slice(0,5).map(l => `
+          <div style="display:flex;justify-content:space-between;padding:10px 12px;background:var(--dark);border-radius:8px;margin-bottom:6px;border:1px solid var(--border);">
+            <span style="font-size:13px;color:var(--text);">${l.origin} → ${l.dest}</span>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:${l.net>=0?'var(--green)':'var(--red)'};">${fmt(l.net)}</span>
+          </div>
+        `).join('')}
+        ${monthLoads.length > 5 ? `<div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px;">+${monthLoads.length-5} more loads in History tab</div>` : ''}
+      `}
+    </div>
+  `;
 }
 
 // ── SAVE LOAD ──

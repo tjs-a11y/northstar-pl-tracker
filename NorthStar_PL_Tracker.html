@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>North Star — Trucker P&L Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #080808;
+    --dark: #111111;
+    --panel: #181818;
+    --border: #2a2a2a;
+    --border-light: #333333;
+    --yellow: #F5C518;
+    --yellow-dim: rgba(245,197,24,0.12);
+    --yellow-glow: rgba(245,197,24,0.04);
+    --green: #22C55E;
+    --green-dim: rgba(34,197,94,0.12);
+    --red: #EF4444;
+    --red-dim: rgba(239,68,68,0.12);
+    --orange: #F97316;
+    --text: #F0F0F0;
+    --text-secondary: #888888;
+    --text-muted: #555555;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--dark);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--yellow);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .logo-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--text);
+    text-transform: uppercase;
+  }
+
+  .logo-text span { color: var(--yellow); }
+
+  .header-badge {
+    background: var(--yellow-dim);
+    border: 1px solid rgba(245,197,24,0.25);
+    color: var(--yellow);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 100px;
+  }
+
+  /* ── LAYOUT ── */
+  .app {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 10px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    background: var(--yellow);
+    color: var(--black);
+  }
+
+  .tab:not(.active):hover {
+    background: var(--border);
+    color: var(--text);
+  }
+
+  /* ── SECTION ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── SETTINGS BANNER ── */
+  .settings-banner {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .settings-banner h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--yellow);
+    margin-bottom: 16px;
+  }
+
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  /* ── FORM ELEMENTS ── */
+  .field { display: flex; flex-direction: column; gap: 5px; }
+
+  .field label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .field input, .field select {
+    background: var(--dark);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: var(--yellow);
+  }
+
+  .field input::placeholder { color: var(--text-muted); }
+
+  .field select option { background: var(--dark); }
+
+  /* ── LOAD ENTRY ── */
+  .load-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .load-card h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--yellow);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .load-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  /* ── LIVE RESULT ── */
+  .result-panel {
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 4px;
+  }
+
+  .result-verdict {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .verdict-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 100px;
+  }
+
+  .verdict-badge.green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .verdict-badge.red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .verdict-badge.yellow { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(245,197,24,0.3); }
+
+  .verdict-net {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .verdict-net.green { color: var(--green); }
+  .verdict-net.red { color: var(--red); }
+  .verdict-net.yellow { color: var(--yellow); }
+
+  .verdict-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+  }
+
+  .result-item { display: flex; flex-direction: column; gap: 3px; }
+
+  .result-item .r-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .result-item .r-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .result-item .r-value.pos { color: var(--green); }
+  .result-item .r-value.neg { color: var(--red); }
+  .result-item .r-value.warn { color: var(--yellow); }
+
+  /* ── DEDUCTION BREAKDOWN ── */
+  .breakdown {
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 14px;
+  }
+
+  .breakdown h4 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-row .b-label { color: var(--text-secondary); }
+  .breakdown-row .b-value { font-weight: 600; color: var(--red); font-family: 'Barlow Condensed', sans-serif; font-size: 16px; }
+  .breakdown-row.total .b-label { color: var(--text); font-weight: 600; }
+  .breakdown-row.total .b-value { color: var(--text); font-size: 18px; font-weight: 800; }
+  .breakdown-row.net-row .b-label { color: var(--yellow); font-weight: 700; font-size: 15px; }
+  .breakdown-row.net-row .b-value { font-size: 20px; font-weight: 900; }
+
+  /* ── SAVE BUTTON ── */
+  .btn-save {
+    width: 100%;
+    padding: 14px;
+    background: var(--yellow);
+    color: var(--black);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+
+  .btn-save:hover { opacity: 0.9; }
+  .btn-save:active { transform: scale(0.99); }
+  .btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── DASHBOARD ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .kpi-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .kpi-card.yellow::before { background: var(--yellow); }
+  .kpi-card.green::before { background: var(--green); }
+  .kpi-card.blue::before { background: #60A5FA; }
+  .kpi-card.orange::before { background: var(--orange); }
+  .kpi-card.purple::before { background: #A78BFA; }
+  .kpi-card.red::before { background: var(--red); }
+
+  .kpi-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* ── LOAD HISTORY ── */
+  .history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .history-header h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--yellow);
+  }
+
+  .btn-clear {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-clear:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── LOAD ROWS ── */
+  .load-row {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+    transition: border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .load-row::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .load-row.profit::before { background: var(--green); }
+  .load-row.loss::before { background: var(--red); }
+  .load-row.break::before { background: var(--yellow); }
+
+  .load-row:hover { border-color: var(--border-light); }
+
+  .load-row-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .load-row-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.5px;
+  }
+
+  .load-row-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .meta-pill {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .load-row-right { text-align: right; }
+
+  .load-net {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .load-net.profit { color: var(--green); }
+  .load-net.loss { color: var(--red); }
+  .load-net.break { color: var(--yellow); }
+
+  .load-rpm {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  .load-date {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  .delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    transition: color 0.2s;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+
+  .delete-btn:hover { color: var(--red); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-state .e-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .empty-state p { font-size: 14px; color: var(--text-muted); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--green);
+    color: var(--black);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 12px 20px;
+    border-radius: 8px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 999;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── WEEK SUMMARY ── */
+  .week-block {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .week-header {
+    padding: 14px 18px;
+    background: var(--dark);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .week-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .week-net {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .app { padding: 16px 12px 60px; }
+    .kpi-value { font-size: 22px; }
+    .load-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">🚛</div>
+    <div class="logo-text">North <span>Star</span></div>
+  </div>
+  <div class="header-badge">P&L Tracker</div>
+</div>
+
+<div class="app">
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('calculator')">📊 Load Calculator</button>
+    <button class="tab" onclick="switchTab('dashboard')">📈 Dashboard</button>
+    <button class="tab" onclick="switchTab('history')">📋 Load History</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- TAB 1: LOAD CALCULATOR                    -->
+  <!-- ══════════════════════════════════════════ -->
+  <div id="tab-calculator" class="section active">
+
+    <!-- COST SETTINGS -->
+    <div class="settings-banner">
+      <h3>⚙️ Your Cost Profile — Edit Anytime</h3>
+      <div class="settings-grid">
+        <div class="field">
+          <label>Dispatch % Cut</label>
+          <input type="number" id="s-dispatch" value="15" min="0" max="100" step="0.5" oninput="recalc()">
+        </div>
+        <div class="field">
+          <label>Factoring / Other %</label>
+          <input type="number" id="s-factoring" value="20" min="0" max="100" step="0.5" oninput="recalc()">
+        </div>
+        <div class="field">
+          <label>Rental (¢ per mile)</label>
+          <input type="number" id="s-rental" value="0.35" min="0" step="0.01" oninput="recalc()">
+        </div>
+        <div class="field">
+          <label>Diesel Price ($/gal)</label>
+          <input type="number" id="s-diesel" value="5.35" min="0" step="0.01" oninput="recalc()">
+        </div>
+        <div class="field">
+          <label>Truck MPG</label>
+          <input type="number" id="s-mpg" value="6.5" min="1" step="0.5" oninput="recalc()">
+        </div>
+      </div>
+    </div>
+
+    <!-- LOAD ENTRY -->
+    <div class="load-card">
+      <h3>🚚 Enter Load Details</h3>
+      <div class="load-grid">
+        <div class="field">
+          <label>Origin City</label>
+          <input type="text" id="l-origin" placeholder="e.g. Atlanta, GA" oninput="recalc()">
+        </div>
+        <div class="field">
+          <label>Destination City</label>
+          <input type="text" id="l-dest" placeholder="e.g. Seattle, WA" oninput="recalc()">
+        </div>
+        <div class="field">
+          <label>Gross Rate ($)</label>
+          <input type="number" id="l-rate" placeholder="0.00" min="0" step="1" oninput="recalc()">
+        </div>
+        <div class="field">
+          <label>Loaded Miles</label>
+          <input type="number" id="l-miles" placeholder="0" min="0" step="1" oninput="recalc()">
+        </div>
+        <div class="field">
+          <label>Deadhead Miles</label>
+          <input type="number" id="l-dh" placeholder="0" min="0" step="1" oninput="recalc()">
+        </div>
+        <div class="field">
+          <label>Weight (lbs)</label>
+          <input type="number" id="l-weight" placeholder="0" min="0" step="100" oninput="recalc()">
+        </div>
+        <div class="field">
+          <label>Equipment Type</label>
+          <select id="l-equip" oninput="recalc()">
+            <option>Dry Van 53ft</option>
+            <option>Box Truck 26ft</option>
+            <option>Hotshot</option>
+            <option>Reefer</option>
+            <option>Flatbed</option>
+            <option>Step Deck</option>
+            <option>Power Only</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Load Date</label>
+          <input type="date" id="l-date" oninput="recalc()">
+        </div>
+      </div>
+
+      <!-- LIVE RESULT -->
+      <div class="result-panel" id="result-panel">
+        <div class="result-verdict">
+          <div>
+            <div class="verdict-net" id="r-net">—</div>
+            <div class="verdict-label">Net Profit After All Deductions</div>
+          </div>
+          <div id="r-badge" class="verdict-badge yellow">Enter Load</div>
+        </div>
+        <div class="result-grid">
+          <div class="result-item">
+            <div class="r-label">Gross Rate</div>
+            <div class="r-value" id="r-gross">—</div>
+          </div>
+          <div class="result-item">
+            <div class="r-label">Net / Loaded Mile</div>
+            <div class="r-value" id="r-npm">—</div>
+          </div>
+          <div class="result-item">
+            <div class="r-label">Net / All Miles</div>
+            <div class="r-value" id="r-nall">—</div>
+          </div>
+          <div class="result-item">
+            <div class="r-label">Gross / Mile</div>
+            <div class="r-value" id="r-gpm">—</div>
+          </div>
+          <div class="result-item">
+            <div class="r-label">Total Miles</div>
+            <div class="r-value" id="r-total-mi">—</div>
+          </div>
+          <div class="result-item">
+            <div class="r-label">Fuel Cost</div>
+            <div class="r-value" id="r-fuel">—</div>
+          </div>
+        </div>
+
+        <!-- DEDUCTION BREAKDOWN -->
+        <div class="breakdown">
+          <h4>Deduction Breakdown</h4>
+          <div class="breakdown-row">
+            <span class="b-label">Gross Rate</span>
+            <span class="b-value" id="b-gross" style="color:var(--text)">—</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="b-label">Dispatch (<span id="b-d-pct">15</span>%)</span>
+            <span class="b-value" id="b-dispatch">—</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="b-label">Factoring/Other (<span id="b-f-pct">20</span>%)</span>
+            <span class="b-value" id="b-factoring">—</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="b-label">Fuel Cost</span>
+            <span class="b-value" id="b-fuel">—</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="b-label">Rental Fee ($0.35/mi)</span>
+            <span class="b-value" id="b-rental">—</span>
+          </div>
+          <div class="breakdown-row total">
+            <span class="b-label">Total Deductions</span>
+            <span class="b-value" id="b-total-ded">—</span>
+          </div>
+          <div class="breakdown-row net-row">
+            <span class="b-label">YOUR NET</span>
+            <span class="b-value" id="b-net" style="color:var(--yellow)">—</span>
+          </div>
+        </div>
+
+      </div>
+
+      <button class="btn-save" id="save-btn" onclick="saveLoad()" disabled>💾 Save This Load to History</button>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- TAB 2: DASHBOARD                          -->
+  <!-- ══════════════════════════════════════════ -->
+  <div id="tab-dashboard" class="section">
+
+    <div class="kpi-grid" id="kpi-grid">
+      <div class="kpi-card yellow">
+        <div class="kpi-label">Total Gross</div>
+        <div class="kpi-value" id="kpi-gross">$0</div>
+        <div class="kpi-sub">All loads combined</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">Total Net</div>
+        <div class="kpi-value" id="kpi-net">$0</div>
+        <div class="kpi-sub">After all deductions</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-label">Loads Tracked</div>
+        <div class="kpi-value" id="kpi-loads">0</div>
+        <div class="kpi-sub">Total loads entered</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-label">Avg Net / Load</div>
+        <div class="kpi-value" id="kpi-avg">$0</div>
+        <div class="kpi-sub">Average take-home</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">Best Load</div>
+        <div class="kpi-value" id="kpi-best">$0</div>
+        <div class="kpi-sub" id="kpi-best-sub">—</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-label">Worst Load</div>
+        <div class="kpi-value" id="kpi-worst">$0</div>
+        <div class="kpi-sub" id="kpi-worst-sub">—</div>
+      </div>
+      <div class="kpi-card purple">
+        <div class="kpi-label">Avg Gross RPM</div>
+        <div class="kpi-value" id="kpi-rpm">$0.00</div>
+        <div class="kpi-sub">Per loaded mile</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-label">Total Miles</div>
+        <div class="kpi-value" id="kpi-miles">0</div>
+        <div class="kpi-sub">Loaded + deadhead</div>
+      </div>
+    </div>
+
+    <!-- WEEKLY SUMMARY -->
+    <div class="history-header" style="margin-top:24px;">
+      <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--yellow);">📅 Weekly Summary</h3>
+    </div>
+    <div id="weekly-container">
+      <div class="empty-state">
+        <div class="e-icon">📊</div>
+        <h3>No Data Yet</h3>
+        <p>Save your first load to see your weekly summary.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- TAB 3: LOAD HISTORY                       -->
+  <!-- ══════════════════════════════════════════ -->
+  <div id="tab-history" class="section">
+
+    <div class="history-header">
+      <h3>All Saved Loads</h3>
+      <button class="btn-clear" onclick="clearAll()">🗑 Clear All</button>
+    </div>
+
+    <div id="history-list">
+      <div class="empty-state">
+        <div class="e-icon">🚛</div>
+        <h3>No Loads Yet</h3>
+        <p>Enter a load in the calculator and save it to start tracking your P&L.</p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✅ Load Saved!</div>
+
+<script>
+// ── STATE ──
+let loads = JSON.parse(localStorage.getItem('ns_loads') || '[]');
+
+// Set today's date as default
+document.getElementById('l-date').valueAsDate = new Date();
+
+// ── TAB SWITCHING ──
+function switchTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'history') renderHistory();
+}
+
+// ── CALC ENGINE ──
+function getSettings() {
+  return {
+    dispatch: parseFloat(document.getElementById('s-dispatch').value) || 0,
+    factoring: parseFloat(document.getElementById('s-factoring').value) || 0,
+    rental: parseFloat(document.getElementById('s-rental').value) || 0,
+    diesel: parseFloat(document.getElementById('s-diesel').value) || 0,
+    mpg: parseFloat(document.getElementById('s-mpg').value) || 6.5,
+  };
+}
+
+function calcLoad(rate, miles, dh, settings) {
+  const totalMiles = miles + dh;
+  const fuelCostPerMile = settings.diesel / settings.mpg;
+  const dispatchAmt = rate * (settings.dispatch / 100);
+  const factoringAmt = rate * (settings.factoring / 100);
+  const fuelAmt = fuelCostPerMile * totalMiles;
+  const rentalAmt = settings.rental * totalMiles;
+  const totalDeductions = dispatchAmt + factoringAmt + fuelAmt + rentalAmt;
+  const net = rate - totalDeductions;
+  const netPerLoadedMile = miles > 0 ? net / miles : 0;
+  const netPerAllMile = totalMiles > 0 ? net / totalMiles : 0;
+  const grossPerMile = miles > 0 ? rate / miles : 0;
+  return { dispatchAmt, factoringAmt, fuelAmt, rentalAmt, totalDeductions, net, netPerLoadedMile, netPerAllMile, grossPerMile, totalMiles, fuelCostPerMile };
+}
+
+function fmt(n, decimals=0) {
+  const abs = Math.abs(n);
+  const str = abs.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  return (n < 0 ? '-$' : '$') + str;
+}
+
+function recalc() {
+  const rate = parseFloat(document.getElementById('l-rate').value) || 0;
+  const miles = parseFloat(document.getElementById('l-miles').value) || 0;
+  const dh = parseFloat(document.getElementById('l-dh').value) || 0;
+  const settings = getSettings();
+
+  // Update breakdown pct labels
+  document.getElementById('b-d-pct').textContent = settings.dispatch;
+  document.getElementById('b-f-pct').textContent = settings.factoring;
+
+  const saveBtn = document.getElementById('save-btn');
+
+  if (!rate || !miles) {
+    document.getElementById('r-net').textContent = '—';
+    document.getElementById('r-badge').textContent = 'Enter Load';
+    document.getElementById('r-badge').className = 'verdict-badge yellow';
+    document.getElementById('r-net').className = 'verdict-net yellow';
+    ['r-gross','r-npm','r-nall','r-gpm','r-total-mi','r-fuel'].forEach(id => document.getElementById(id).textContent = '—');
+    ['b-gross','b-dispatch','b-factoring','b-fuel','b-rental','b-total-ded','b-net'].forEach(id => document.getElementById(id).textContent = '—');
+    saveBtn.disabled = true;
+    return;
+  }
+
+  const c = calcLoad(rate, miles, dh, settings);
+
+  // Verdict
+  let cls, label;
+  if (c.net > 0 && c.netPerLoadedMile >= 0.75) { cls = 'green'; label = '✅ Take This Load'; }
+  else if (c.net > 0 && c.netPerLoadedMile >= 0.40) { cls = 'yellow'; label = '⚠️ Marginal — Negotiate'; }
+  else if (c.net > 0) { cls = 'yellow'; label = '⚠️ Thin Margin'; }
+  else { cls = 'red'; label = '❌ Walk Away'; }
+
+  document.getElementById('r-net').textContent = fmt(c.net);
+  document.getElementById('r-net').className = 'verdict-net ' + cls;
+  document.getElementById('r-badge').textContent = label;
+  document.getElementById('r-badge').className = 'verdict-badge ' + cls;
+
+  document.getElementById('r-gross').textContent = fmt(rate);
+  document.getElementById('r-gross').className = 'r-value';
+
+  const npmEl = document.getElementById('r-npm');
+  npmEl.textContent = fmt(c.netPerLoadedMile, 2);
+  npmEl.className = 'r-value ' + (c.netPerLoadedMile >= 0.75 ? 'pos' : c.netPerLoadedMile >= 0.40 ? 'warn' : 'neg');
+
+  const nallEl = document.getElementById('r-nall');
+  nallEl.textContent = fmt(c.netPerAllMile, 2);
+  nallEl.className = 'r-value ' + (c.netPerAllMile >= 0.60 ? 'pos' : c.netPerAllMile >= 0.30 ? 'warn' : 'neg');
+
+  document.getElementById('r-gpm').textContent = fmt(c.grossPerMile, 2);
+  document.getElementById('r-total-mi').textContent = c.totalMiles.toLocaleString() + ' mi';
+  document.getElementById('r-fuel').textContent = fmt(c.fuelAmt);
+
+  // Breakdown
+  document.getElementById('b-gross').textContent = fmt(rate);
+  document.getElementById('b-dispatch').textContent = '-' + fmt(c.dispatchAmt);
+  document.getElementById('b-factoring').textContent = '-' + fmt(c.factoringAmt);
+  document.getElementById('b-fuel').textContent = '-' + fmt(c.fuelAmt);
+  document.getElementById('b-rental').textContent = '-' + fmt(c.rentalAmt);
+  document.getElementById('b-total-ded').textContent = fmt(c.totalDeductions);
+
+  const netEl = document.getElementById('b-net');
+  netEl.textContent = fmt(c.net);
+  netEl.style.color = c.net >= 0 ? 'var(--green)' : 'var(--red)';
+
+  saveBtn.disabled = false;
+}
+
+// ── SAVE LOAD ──
+function saveLoad() {
+  const rate = parseFloat(document.getElementById('l-rate').value) || 0;
+  const miles = parseFloat(document.getElementById('l-miles').value) || 0;
+  const dh = parseFloat(document.getElementById('l-dh').value) || 0;
+  const origin = document.getElementById('l-origin').value || 'Origin';
+  const dest = document.getElementById('l-dest').value || 'Destination';
+  const equip = document.getElementById('l-equip').value;
+  const date = document.getElementById('l-date').value;
+  const weight = document.getElementById('l-weight').value;
+  const settings = getSettings();
+
+  if (!rate || !miles) return;
+
+  const c = calcLoad(rate, miles, dh, settings);
+
+  const load = {
+    id: Date.now(),
+    origin, dest, equip, date, weight,
+    rate, miles, dh,
+    settings: { ...settings },
+    net: c.net,
+    netPerLoadedMile: c.netPerLoadedMile,
+    netPerAllMile: c.netPerAllMile,
+    grossPerMile: c.grossPerMile,
+    totalMiles: c.totalMiles,
+    fuelAmt: c.fuelAmt,
+    dispatchAmt: c.dispatchAmt,
+    factoringAmt: c.factoringAmt,
+    rentalAmt: c.rentalAmt,
+    totalDeductions: c.totalDeductions,
+  };
+
+  loads.unshift(load);
+  localStorage.setItem('ns_loads', JSON.stringify(loads));
+
+  // Show toast
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+
+  // Clear form
+  ['l-origin','l-dest','l-rate','l-miles','l-dh','l-weight'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('l-date').valueAsDate = new Date();
+  recalc();
+}
+
+// ── DELETE LOAD ──
+function deleteLoad(id) {
+  loads = loads.filter(l => l.id !== id);
+  localStorage.setItem('ns_loads', JSON.stringify(loads));
+  renderHistory();
+  renderDashboard();
+}
+
+// ── CLEAR ALL ──
+function clearAll() {
+  if (!confirm('Clear all saved loads? This cannot be undone.')) return;
+  loads = [];
+  localStorage.setItem('ns_loads', JSON.stringify(loads));
+  renderHistory();
+  renderDashboard();
+}
+
+// ── RENDER HISTORY ──
+function renderHistory() {
+  const container = document.getElementById('history-list');
+  if (!loads.length) {
+    container.innerHTML = `<div class="empty-state"><div class="e-icon">🚛</div><h3>No Loads Yet</h3><p>Enter a load in the calculator and save it to start tracking your P&L.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = loads.map(l => {
+    const cls = l.net > 0 ? 'profit' : l.net < 0 ? 'loss' : 'break';
+    const netCls = l.net > 0 ? 'profit' : l.net < 0 ? 'loss' : 'break';
+    const dateStr = l.date ? new Date(l.date + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '';
+    return `
+      <div class="load-row ${cls}">
+        <button class="delete-btn" onclick="deleteLoad(${l.id})">✕</button>
+        <div class="load-row-main">
+          <div class="load-row-title">${l.origin} → ${l.dest}</div>
+          <div class="load-row-meta">
+            <span class="meta-pill">🚛 ${l.equip}</span>
+            <span class="meta-pill">📍 ${l.miles.toLocaleString()} mi loaded</span>
+            <span class="meta-pill">↩️ ${l.dh} mi DH</span>
+            ${l.weight ? `<span class="meta-pill">⚖️ ${parseInt(l.weight).toLocaleString()} lbs</span>` : ''}
+            <span class="meta-pill">💵 ${fmt(l.rate)} gross</span>
+          </div>
+        </div>
+        <div class="load-row-right">
+          <div class="load-net ${netCls}">${fmt(l.net)}</div>
+          <div class="load-rpm">${fmt(l.netPerLoadedMile, 2)}/mi net</div>
+          ${dateStr ? `<div class="load-date">${dateStr}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── RENDER DASHBOARD ──
+function renderDashboard() {
+  if (!loads.length) {
+    document.getElementById('kpi-gross').textContent = '$0';
+    document.getElementById('kpi-net').textContent = '$0';
+    document.getElementById('kpi-loads').textContent = '0';
+    document.getElementById('kpi-avg').textContent = '$0';
+    document.getElementById('kpi-best').textContent = '$0';
+    document.getElementById('kpi-best-sub').textContent = '—';
+    document.getElementById('kpi-worst').textContent = '$0';
+    document.getElementById('kpi-worst-sub').textContent = '—';
+    document.getElementById('kpi-rpm').textContent = '$0.00';
+    document.getElementById('kpi-miles').textContent = '0';
+    document.getElementById('weekly-container').innerHTML = `<div class="empty-state"><div class="e-icon">📊</div><h3>No Data Yet</h3><p>Save your first load to see your weekly summary.</p></div>`;
+    return;
+  }
+
+  const totalGross = loads.reduce((s, l) => s + l.rate, 0);
+  const totalNet = loads.reduce((s, l) => s + l.net, 0);
+  const totalMilesAll = loads.reduce((s, l) => s + l.totalMiles, 0);
+  const avgNet = totalNet / loads.length;
+  const avgRpm = loads.reduce((s,l) => s + (l.rate / l.miles), 0) / loads.length;
+
+  const best = loads.reduce((a, b) => a.net > b.net ? a : b);
+  const worst = loads.reduce((a, b) => a.net < b.net ? a : b);
+
+  document.getElementById('kpi-gross').textContent = fmt(totalGross);
+  const netEl = document.getElementById('kpi-net');
+  netEl.textContent = fmt(totalNet);
+  netEl.style.color = totalNet >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('kpi-loads').textContent = loads.length;
+  document.getElementById('kpi-avg').textContent = fmt(avgNet);
+  document.getElementById('kpi-best').textContent = fmt(best.net);
+  document.getElementById('kpi-best-sub').textContent = best.origin + ' → ' + best.dest;
+  document.getElementById('kpi-worst').textContent = fmt(worst.net);
+  document.getElementById('kpi-worst-sub').textContent = worst.origin + ' → ' + worst.dest;
+  document.getElementById('kpi-rpm').textContent = '$' + avgRpm.toFixed(2);
+  document.getElementById('kpi-miles').textContent = totalMilesAll.toLocaleString();
+
+  // Weekly summary
+  const weeks = {};
+  loads.forEach(l => {
+    const d = l.date ? new Date(l.date + 'T12:00:00') : new Date();
+    const weekStart = new Date(d);
+    weekStart.setDate(d.getDate() - d.getDay());
+    const key = weekStart.toISOString().split('T')[0];
+    if (!weeks[key]) weeks[key] = { loads: [], net: 0, gross: 0, start: weekStart };
+    weeks[key].loads.push(l);
+    weeks[key].net += l.net;
+    weeks[key].gross += l.rate;
+  });
+
+  const weekKeys = Object.keys(weeks).sort((a,b) => b.localeCompare(a));
+  const weekHtml = weekKeys.map(key => {
+    const w = weeks[key];
+    const endDate = new Date(w.start);
+    endDate.setDate(endDate.getDate() + 6);
+    const rangeStr = w.start.toLocaleDateString('en-US', {month:'short',day:'numeric'}) + ' – ' + endDate.toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
+    const netColor = w.net >= 0 ? 'var(--green)' : 'var(--red)';
+    return `
+      <div class="week-block">
+        <div class="week-header">
+          <div class="week-title">📅 Week of ${rangeStr}</div>
+          <div class="week-net" style="color:${netColor}">${fmt(w.net)} net</div>
+        </div>
+        ${w.loads.map(l => `
+          <div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:var(--text);">${l.origin} → ${l.dest}</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${l.equip} · ${l.miles.toLocaleString()} mi · ${fmt(l.rate)} gross</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:${l.net>=0?'var(--green)':'var(--red)'};">${fmt(l.net)}</div>
+              <div style="font-size:11px;color:var(--text-muted);">${fmt(l.netPerLoadedMile,2)}/mi</div>
+            </div>
+          </div>
+        `).join('')}
+        <div style="padding:12px 18px;display:flex;justify-content:space-between;background:var(--dark);">
+          <span style="font-size:12px;color:var(--text-muted);">${w.loads.length} load${w.loads.length!==1?'s':''} · ${fmt(w.gross)} total gross</span>
+          <span style="font-size:12px;color:var(--text-muted);">Avg net: ${fmt(w.net/w.loads.length)} per load</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('weekly-container').innerHTML = weekHtml;
+}
+
+// Init
+recalc();
+renderDashboard();
+renderHistory();
+</script>
+</body>
+</html>

@@ -634,7 +634,7 @@
     <div class="logo-icon">🚛</div>
     <div class="logo-text">North <span>Star</span></div>
   </div>
-  <div class="header-badge">P&L Tracker v2.0</div>
+  <div class="header-badge">P&L Tracker v3.0</div>
 </div>
 
 <div class="app">
@@ -643,7 +643,9 @@
   <div class="tabs">
     <button class="tab active" onclick="switchTab('calculator')">📊 Calculator</button>
     <button class="tab" onclick="switchTab('breakeven')">🎯 Break-Even</button>
-    <button class="tab" onclick="switchTab('goals')">🏆 My Goals</button>
+    <button class="tab" onclick="switchTab('expenses')">💸 Expenses</button>
+    <button class="tab" onclick="switchTab('taxes')">🧾 Taxes</button>
+    <button class="tab" onclick="switchTab('goals')">🏆 Goals</button>
     <button class="tab" onclick="switchTab('dashboard')">📈 Dashboard</button>
     <button class="tab" onclick="switchTab('history')">📋 History</button>
   </div>
@@ -886,7 +888,230 @@
   </div>
 
   <!-- ══════════════════════════════════════════ -->
-  <!-- TAB 3: MONTHLY GOAL TRACKER               -->
+  <!-- TAB: EXPENSE TRACKER                      -->
+  <!-- ══════════════════════════════════════════ -->
+  <div id="tab-expenses" class="section">
+
+    <div class="load-card" style="margin-bottom:20px;">
+      <h3>💸 Log An Expense</h3>
+      <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;">Track every business expense as it happens. Every dollar logged is a potential tax deduction.</p>
+      <div class="load-grid">
+        <div class="field">
+          <label>Expense Category</label>
+          <select id="exp-category">
+            <option>⛽ Fuel</option>
+            <option>🔧 Maintenance & Repairs</option>
+            <option>🛣️ Tolls</option>
+            <option>🅿️ Parking</option>
+            <option>🍽️ Meals (Per Diem)</option>
+            <option>📦 Lumper Fees</option>
+            <option>📱 Phone & Communications</option>
+            <option>💻 Load Board Subscriptions</option>
+            <option>🛡️ Insurance</option>
+            <option>🪪 Licensing & Permits</option>
+            <option>🏥 Health Insurance</option>
+            <option>🏠 Home Office</option>
+            <option>🧰 Tools & Equipment</option>
+            <option>📋 Other Business Expense</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Amount ($)</label>
+          <input type="number" id="exp-amount" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label>Description</label>
+          <input type="text" id="exp-desc" placeholder="e.g. Tire repair I-40 exit 52">
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="exp-date">
+        </div>
+        <div class="field">
+          <label>Nights Away (Per Diem)</label>
+          <input type="number" id="exp-nights" placeholder="0" min="0" step="1" title="IRS allows $69/day when away from home">
+        </div>
+      </div>
+      <button class="btn-save" onclick="saveExpense()" style="margin-top:4px;">💾 Save Expense</button>
+    </div>
+
+    <!-- EXPENSE SUMMARY -->
+    <div class="load-card">
+      <h3 style="margin-bottom:16px;">📊 Expense Summary</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
+        <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Total Expenses</div>
+          <div id="exp-total" style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--red);">$0</div>
+        </div>
+        <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Total Deductions</div>
+          <div id="exp-deductions" style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--green);">$0</div>
+        </div>
+        <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Est. Tax Saved</div>
+          <div id="exp-tax-saved" style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--yellow);">$0</div>
+        </div>
+        <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Per Diem Nights</div>
+          <div id="exp-perdiem-nights" style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--orange);">0</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">$69/night IRS rate</div>
+        </div>
+      </div>
+
+      <!-- WRITE-OFF COUNTER -->
+      <div style="background:linear-gradient(135deg,rgba(34,197,94,0.1),rgba(245,197,24,0.1));border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:8px;">💰 Write-Off Counter</div>
+        <div id="writeoff-message" style="font-size:15px;color:var(--text);line-height:1.6;">Log your first expense to start tracking your write-offs.</div>
+      </div>
+
+      <!-- EXPENSE LIST -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--yellow);font-family:'Barlow Condensed',sans-serif;font-weight:700;">Recent Expenses</div>
+        <button class="btn-clear" onclick="clearExpenses()">🗑 Clear All</button>
+      </div>
+      <div id="expense-list">
+        <div class="empty-state" style="padding:30px 20px;">
+          <div class="e-icon">💸</div>
+          <h3>No Expenses Yet</h3>
+          <p>Log your first expense above to start tracking deductions.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- TAB: TAX ESTIMATOR                        -->
+  <!-- ══════════════════════════════════════════ -->
+  <div id="tab-taxes" class="section">
+
+    <div class="settings-banner" style="margin-bottom:20px;">
+      <h3>🧾 Tax Settings</h3>
+      <div class="settings-grid">
+        <div class="field">
+          <label>Filing Status</label>
+          <select id="tax-filing" onchange="updateTaxes()">
+            <option value="single">Single</option>
+            <option value="married" selected>Married Filing Jointly</option>
+            <option value="hoh">Head of Household</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>State Tax Rate %</label>
+          <input type="number" id="tax-state" value="5" min="0" max="15" step="0.1" oninput="updateTaxes()">
+        </div>
+        <div class="field">
+          <label>Other Annual Income ($)</label>
+          <input type="number" id="tax-other" value="0" min="0" oninput="updateTaxes()">
+        </div>
+      </div>
+    </div>
+
+    <div id="tax-dashboard">
+      <div class="load-card" style="margin-bottom:20px;">
+        <h3 style="margin-bottom:16px;">📊 Tax Overview — <span id="tax-year">2026</span></h3>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
+          <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Gross Income</div>
+            <div id="tax-gross" style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--yellow);">$0</div>
+          </div>
+          <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Total Deductions</div>
+            <div id="tax-deductions" style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--green);">$0</div>
+          </div>
+          <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Taxable Income</div>
+            <div id="tax-taxable" style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--text);">$0</div>
+          </div>
+          <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Self-Employ Tax</div>
+            <div id="tax-se" style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--red);">$0</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">15.3%</div>
+          </div>
+          <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Federal Tax</div>
+            <div id="tax-federal" style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--red);">$0</div>
+          </div>
+          <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">State Tax</div>
+            <div id="tax-state-amt" style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--red);">$0</div>
+          </div>
+          <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);border-top:3px solid var(--red);">
+            <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Total Tax Bill</div>
+            <div id="tax-total" style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--red);">$0</div>
+          </div>
+          <div style="text-align:center;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);border-top:3px solid var(--yellow);">
+            <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Quarterly Payment</div>
+            <div id="tax-quarterly" style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--yellow);">$0</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Set aside each quarter</div>
+          </div>
+        </div>
+
+        <!-- QUARTERLY SCHEDULE -->
+        <div class="breakdown" style="margin-bottom:16px;">
+          <h4>📅 2026 Quarterly Tax Payment Schedule</h4>
+          <div class="breakdown-row">
+            <span class="b-label">Q1 — Jan 1 to Mar 31</span>
+            <span class="b-value" id="q1-status" style="color:var(--text-muted);">Due April 15</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="b-label">Q2 — Apr 1 to May 31</span>
+            <span class="b-value" id="q2-status" style="color:var(--yellow);">Due June 15 ← NEXT</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="b-label">Q3 — Jun 1 to Aug 31</span>
+            <span class="b-value" id="q3-status" style="color:var(--text-muted);">Due Sept 15</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="b-label">Q4 — Sep 1 to Dec 31</span>
+            <span class="b-value" id="q4-status" style="color:var(--text-muted);">Due Jan 15, 2027</span>
+          </div>
+        </div>
+
+        <!-- MILEAGE LOG -->
+        <div class="breakdown" style="margin-bottom:16px;">
+          <h4>🗺️ IRS Mileage Log Summary</h4>
+          <div class="breakdown-row">
+            <span class="b-label">Total Business Miles</span>
+            <span class="b-value" id="mile-total" style="color:var(--text);">0 mi</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="b-label">IRS Rate (2026)</span>
+            <span class="b-value" style="color:var(--text);">$0.725/mile</span>
+          </div>
+          <div class="breakdown-row net-row">
+            <span class="b-label">Mileage Deduction Value</span>
+            <span class="b-value" id="mile-deduction" style="color:var(--green);">$0</span>
+          </div>
+        </div>
+
+        <!-- QUARTERLY REPORT -->
+        <div style="margin-top:16px;">
+          <button class="btn-save" onclick="generateReport()" style="background:var(--orange);">📄 Generate Quarterly Report</button>
+        </div>
+
+        <!-- DISCLAIMER -->
+        <div style="margin-top:16px;padding:12px;background:var(--dark);border-radius:8px;border:1px solid var(--border);">
+          <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">⚠️ <strong style="color:var(--text-secondary);">Disclaimer:</strong> This tool organizes and estimates your tax information for planning purposes only. It is not tax advice. Consult a licensed CPA or tax professional for your actual tax filing. All estimates are based on general IRS guidelines and may not reflect your specific situation.</p>
+        </div>
+
+      </div>
+
+      <!-- QUARTERLY REPORT OUTPUT -->
+      <div id="report-output" style="display:none;" class="load-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3>📄 Quarterly Report</h3>
+          <button onclick="copyReport()" style="background:var(--green);color:var(--black);border:none;border-radius:6px;padding:8px 14px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">📋 Copy Report</button>
+        </div>
+        <div id="report-content" style="font-family:monospace;font-size:13px;color:var(--text);line-height:1.8;background:var(--dark);padding:20px;border-radius:8px;border:1px solid var(--border);white-space:pre-wrap;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- TAB: MONTHLY GOAL TRACKER                 -->
   <!-- ══════════════════════════════════════════ -->
   <div id="tab-goals" class="section">
 
@@ -913,6 +1138,7 @@
     </div>
 
   </div>
+
   <div id="tab-dashboard" class="section">
 
     <div class="kpi-grid" id="kpi-grid">
@@ -1000,9 +1226,11 @@
 <script>
 // ── STATE ──
 let loads = JSON.parse(localStorage.getItem('ns_loads') || '[]');
+let expenses = JSON.parse(localStorage.getItem('ns_expenses') || '[]');
 
 // Set today's date as default
 document.getElementById('l-date').valueAsDate = new Date();
+document.getElementById('exp-date').valueAsDate = new Date();
 
 // ── TAB SWITCHING ──
 function switchTab(name) {
@@ -1013,6 +1241,8 @@ function switchTab(name) {
   if (name === 'dashboard') renderDashboard();
   if (name === 'history') renderHistory();
   if (name === 'goals') updateGoals();
+  if (name === 'expenses') renderExpenses();
+  if (name === 'taxes') updateTaxes();
 }
 
 // ── CALC ENGINE ──
@@ -1492,6 +1722,246 @@ function renderDashboard() {
 recalc();
 renderDashboard();
 renderHistory();
+renderExpenses();
+
+// ── EXPENSE TRACKER ──
+function saveExpense() {
+  const category = document.getElementById('exp-category').value;
+  const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
+  const desc = document.getElementById('exp-desc').value || '';
+  const date = document.getElementById('exp-date').value;
+  const nights = parseFloat(document.getElementById('exp-nights').value) || 0;
+
+  if (!amount && !nights) {
+    alert('Please enter an amount or number of nights.');
+    return;
+  }
+
+  const perDiemAmt = nights * 69;
+  const totalAmt = amount + perDiemAmt;
+
+  const expense = {
+    id: Date.now(),
+    category,
+    amount,
+    desc,
+    date,
+    nights,
+    perDiemAmt,
+    totalAmt,
+  };
+
+  expenses.unshift(expense);
+  localStorage.setItem('ns_expenses', JSON.stringify(expenses));
+
+  // Clear form
+  document.getElementById('exp-amount').value = '';
+  document.getElementById('exp-desc').value = '';
+  document.getElementById('exp-nights').value = '';
+  document.getElementById('exp-date').valueAsDate = new Date();
+
+  renderExpenses();
+
+  const toast = document.getElementById('toast');
+  toast.textContent = '✅ Expense Saved!';
+  toast.style.background = 'var(--orange)';
+  toast.classList.add('show');
+  setTimeout(() => { toast.classList.remove('show'); toast.textContent = '✅ Load Saved!'; toast.style.background = 'var(--green)'; }, 2500);
+}
+
+function renderExpenses() {
+  const totalExpenses = expenses.reduce((s, e) => s + e.totalAmt, 0);
+  const totalNights = expenses.reduce((s, e) => s + (e.nights || 0), 0);
+  const perDiemTotal = totalNights * 69;
+  const estimatedTaxRate = 0.25;
+  const taxSaved = totalExpenses * estimatedTaxRate;
+
+  document.getElementById('exp-total').textContent = fmt(totalExpenses);
+  document.getElementById('exp-deductions').textContent = fmt(totalExpenses);
+  document.getElementById('exp-tax-saved').textContent = fmt(taxSaved);
+  document.getElementById('exp-perdiem-nights').textContent = totalNights;
+
+  // Write-off counter message
+  const writeoffEl = document.getElementById('writeoff-message');
+  if (totalExpenses > 0) {
+    writeoffEl.innerHTML = `💰 You've logged <strong style="color:var(--green)">${fmt(totalExpenses)}</strong> in deductions. At a 25% tax rate that saves you approximately <strong style="color:var(--yellow)">${fmt(taxSaved)}</strong> in taxes. ${totalNights > 0 ? `Your <strong style="color:var(--orange)">${totalNights} nights</strong> away from home = <strong style="color:var(--orange)">${fmt(perDiemTotal)}</strong> in per diem deductions.` : ''} Keep logging every expense — every dollar counts at tax time. 🚛`;
+  } else {
+    writeoffEl.innerHTML = 'Log your first expense to start tracking your write-offs.';
+  }
+
+  const container = document.getElementById('expense-list');
+  if (!expenses.length) {
+    container.innerHTML = `<div class="empty-state" style="padding:30px 20px;"><div class="e-icon">💸</div><h3>No Expenses Yet</h3><p>Log your first expense above to start tracking deductions.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = expenses.slice(0, 20).map(e => {
+    const dateStr = e.date ? new Date(e.date + 'T12:00:00').toLocaleDateString('en-US', {month:'short',day:'numeric'}) : '';
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--dark);border-radius:8px;margin-bottom:8px;border:1px solid var(--border);position:relative;">
+        <button onclick="deleteExpense(${e.id})" style="position:absolute;top:8px;right:8px;background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-muted)'">✕</button>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text);">${e.category}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${e.desc || ''}${e.nights ? ` · ${e.nights} nights per diem` : ''}${dateStr ? ` · ${dateStr}` : ''}</div>
+        </div>
+        <div style="text-align:right;padding-right:20px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--red);">-${fmt(e.totalAmt)}</div>
+          <div style="font-size:11px;color:var(--green);">saves ~${fmt(e.totalAmt * 0.25)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function deleteExpense(id) {
+  expenses = expenses.filter(e => e.id !== id);
+  localStorage.setItem('ns_expenses', JSON.stringify(expenses));
+  renderExpenses();
+}
+
+function clearExpenses() {
+  if (!confirm('Clear all expenses? This cannot be undone.')) return;
+  expenses = [];
+  localStorage.setItem('ns_expenses', JSON.stringify(expenses));
+  renderExpenses();
+}
+
+// ── TAX ESTIMATOR ──
+function updateTaxes() {
+  const filing = document.getElementById('tax-filing')?.value || 'single';
+  const stateRate = parseFloat(document.getElementById('tax-state')?.value) || 0;
+  const otherIncome = parseFloat(document.getElementById('tax-other')?.value) || 0;
+
+  const totalGross = loads.reduce((s, l) => s + l.rate, 0) + otherIncome;
+  const loadDeductions = loads.reduce((s, l) => s + l.totalDeductions, 0);
+  const expenseDeductions = expenses.reduce((s, e) => s + e.totalAmt, 0);
+  const totalMiles = loads.reduce((s, l) => s + l.totalMiles, 0);
+  const mileageDeduction = totalMiles * 0.725;
+  const totalDeductions = expenseDeductions + mileageDeduction;
+
+  // SE tax deduction (50% of SE tax is deductible)
+  const netSE = Math.max(0, totalGross - loadDeductions - totalDeductions);
+  const seTax = netSE * 0.9235 * 0.153;
+  const seDeduction = seTax * 0.5;
+  const taxableIncome = Math.max(0, netSE - seDeduction);
+
+  // Federal tax brackets 2026 (married filing jointly)
+  function federalTax(income, status) {
+    let brackets;
+    if (status === 'married') {
+      brackets = [[23200,0.10],[94300,0.12],[201050,0.22],[383900,0.24],[487450,0.32],[731200,0.35],[Infinity,0.37]];
+    } else if (status === 'hoh') {
+      brackets = [[16550,0.10],[63100,0.12],[100500,0.22],[191950,0.24],[243700,0.32],[609350,0.35],[Infinity,0.37]];
+    } else {
+      brackets = [[11600,0.10],[47150,0.12],[100525,0.22],[191950,0.24],[243725,0.32],[609350,0.35],[Infinity,0.37]];
+    }
+    let tax = 0;
+    let prev = 0;
+    for (const [limit, rate] of brackets) {
+      if (income <= prev) break;
+      tax += (Math.min(income, limit) - prev) * rate;
+      prev = limit;
+    }
+    return tax;
+  }
+
+  const fedTax = federalTax(taxableIncome, filing);
+  const stateTaxAmt = taxableIncome * (stateRate / 100);
+  const totalTax = seTax + fedTax + stateTaxAmt;
+  const quarterlyPayment = totalTax / 4;
+
+  // Update UI
+  document.getElementById('tax-gross').textContent = fmt(totalGross);
+  document.getElementById('tax-deductions').textContent = fmt(totalDeductions);
+  document.getElementById('tax-taxable').textContent = fmt(taxableIncome);
+  document.getElementById('tax-se').textContent = fmt(seTax);
+  document.getElementById('tax-federal').textContent = fmt(fedTax);
+  document.getElementById('tax-state-amt').textContent = fmt(stateTaxAmt);
+  document.getElementById('tax-total').textContent = fmt(totalTax);
+  document.getElementById('tax-quarterly').textContent = fmt(quarterlyPayment);
+  document.getElementById('mile-total').textContent = totalMiles.toLocaleString() + ' mi';
+  document.getElementById('mile-deduction').textContent = fmt(mileageDeduction);
+}
+
+// ── QUARTERLY REPORT GENERATOR ──
+function generateReport() {
+  const now = new Date();
+  const quarter = Math.ceil((now.getMonth() + 1) / 3);
+  const totalGross = loads.reduce((s, l) => s + l.rate, 0);
+  const totalNet = loads.reduce((s, l) => s + l.net, 0);
+  const totalMiles = loads.reduce((s, l) => s + l.totalMiles, 0);
+  const totalExpenses = expenses.reduce((s, e) => s + e.totalAmt, 0);
+  const mileageDeduction = totalMiles * 0.725;
+  const totalNights = expenses.reduce((s, e) => s + (e.nights || 0), 0);
+  const perDiem = totalNights * 69;
+
+  const expByCategory = {};
+  expenses.forEach(e => {
+    if (!expByCategory[e.category]) expByCategory[e.category] = 0;
+    expByCategory[e.category] += e.totalAmt;
+  });
+
+  const stateRate = parseFloat(document.getElementById('tax-state')?.value) || 5;
+  const netSE = Math.max(0, totalNet - totalExpenses);
+  const seTax = netSE * 0.9235 * 0.153;
+  const estimatedTax = seTax + (netSE * 0.22) + (netSE * (stateRate/100));
+  const quarterly = estimatedTax / 4;
+
+  const line = '─'.repeat(44);
+  const report = `NORTH STAR P&L TRACKER
+Q${quarter} ${now.getFullYear()} FINANCIAL SUMMARY
+Generated: ${now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
+${line}
+INCOME
+${line}
+Total Loads:              ${loads.length}
+Gross Revenue:            ${fmt(totalGross)}
+Net After Load Deductions:${fmt(totalNet)}
+${line}
+BUSINESS EXPENSES LOGGED
+${line}
+${Object.entries(expByCategory).map(([k,v]) => `${k.substring(0,25).padEnd(26)}${fmt(v)}`).join('\n') || 'No expenses logged'}
+Per Diem (${totalNights} nights × $69):  ${fmt(perDiem)}
+Total Expenses:           ${fmt(totalExpenses)}
+${line}
+MILEAGE LOG
+${line}
+Total Business Miles:     ${totalMiles.toLocaleString()} mi
+IRS Rate (2026):          $0.725/mile
+Mileage Deduction:        ${fmt(mileageDeduction)}
+${line}
+TAX ESTIMATES
+${line}
+Net Taxable Income:       ${fmt(netSE - totalExpenses)}
+Self-Employment Tax:      ${fmt(seTax)}
+Estimated Federal Tax:    ${fmt(netSE * 0.22)}
+Estimated State Tax:      ${fmt(netSE * (stateRate/100))}
+─────────────────────────────────────────────
+TOTAL ESTIMATED TAX:      ${fmt(estimatedTax)}
+QUARTERLY PAYMENT DUE:    ${fmt(quarterly)}
+${line}
+⚠️ DISCLAIMER: This report is for planning 
+purposes only. Consult a licensed CPA for 
+your actual tax filing.
+${line}
+Powered by North Star P&L Tracker v3.0
+https://bit.ly/4ugKmSo`;
+
+  document.getElementById('report-output').style.display = 'block';
+  document.getElementById('report-content').textContent = report;
+  document.getElementById('report-output').scrollIntoView({behavior:'smooth'});
+}
+
+function copyReport() {
+  const text = document.getElementById('report-content').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const toast = document.getElementById('toast');
+    toast.textContent = '📋 Report Copied!';
+    toast.style.background = 'var(--orange)';
+    toast.classList.add('show');
+    setTimeout(() => { toast.classList.remove('show'); toast.textContent = '✅ Load Saved!'; toast.style.background = 'var(--green)'; }, 2500);
+  });
+}
 </script>
 </body>
 </html>
